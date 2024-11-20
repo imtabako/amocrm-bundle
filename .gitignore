@@ -1,0 +1,33 @@
+###> PhpStorm / IDEA ###
+.idea/
+.DS_Store
+###< PhpStorm / IDEA ###
+
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+
+/public/bundles/
+
+/var/cache/*
+/var/logs/*
+/var/log/*
+/var/sessions/*
+!var/cache/.gitkeep
+!var/logs/.gitkeep
+!var/log/.gitkeep
+!var/sessions/.gitkeep
+
+/vendor/
+###< symfony/framework-bundle ###
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.php
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
