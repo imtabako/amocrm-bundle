@@ -18,7 +18,7 @@ class Api
     use Contacts;
     use Leads;
 
-    private AmoCRMApiClient $apiClient;
+    public AmoCRMApiClient $apiClient;
 
     /**
      * @throws InvalidArgumentException
@@ -28,6 +28,11 @@ class Api
         private string $accountUrl,
         private ?string $alias = null
     ) {
+        if (!str_contains($longLivedAccessToken, '.')) {
+            throw new \InvalidArgumentException('Invalid long-lived access token: "'.$longLivedAccessToken.'"');
+        }
+        error_log($this->longLivedAccessToken);
+
         $this->apiClient = new AmoCRMApiClient();
 
         $token = new LongLivedAccessToken($longLivedAccessToken);
@@ -99,5 +104,29 @@ class Api
             leadName: $leadName,
             tags: $tags,
         );
+    }
+
+    public function getLongLivedAccessToken(): string
+    {
+        return $this->longLivedAccessToken;
+    }
+
+    public function setLongLivedAccessToken(string $longLivedAccessToken): static
+    {
+        $this->longLivedAccessToken = $longLivedAccessToken;
+
+        return $this;
+    }
+
+    public function getAccountUrl(): string
+    {
+        return $this->accountUrl;
+    }
+
+    public function setAccountUrl(string $accountUrl): static
+    {
+        $this->accountUrl = $accountUrl;
+
+        return $this;
     }
 }
