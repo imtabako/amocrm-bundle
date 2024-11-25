@@ -28,11 +28,13 @@ class Api
         private string $accountUrl,
         private ?string $alias = null
     ) {
-        if (!str_contains($longLivedAccessToken, '.')) {
-            throw new \InvalidArgumentException('Invalid long-lived access token: "'.$longLivedAccessToken.'"');
-        }
+//        if (!str_contains($longLivedAccessToken, '.')) {
+//        }
+        file_put_contents('/tmp/debug_token.log', $longLivedAccessToken.PHP_EOL, FILE_APPEND);
         error_log($this->longLivedAccessToken);
+//        dump($this->longLivedAccessToken);
 
+        throw new \InvalidArgumentException('Invalid long-lived access token: "'.$longLivedAccessToken.'"');
         $this->apiClient = new AmoCRMApiClient();
 
         $token = new LongLivedAccessToken($longLivedAccessToken);
