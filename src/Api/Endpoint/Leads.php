@@ -47,6 +47,7 @@ trait Leads
      */
     private function sendLeadWithLinkedContacts(
         ?ContactsCollection $contactsCollection = null,
+        ?int $pipelineId = null,
         ?int $price = null,
         ?string $leadName = null,
         array $tags = [],
@@ -68,6 +69,10 @@ trait Leads
             $lead->setContacts(
                 $contactsCollection
             );
+        }
+
+        if (null !== $pipelineId) {
+            $lead->setPipelineId($pipelineId);
         }
 
         if (!empty($tags)) {
