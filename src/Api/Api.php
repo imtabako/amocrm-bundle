@@ -12,6 +12,7 @@ use Ectool\AmoCrmBundle\Api\Endpoint\Contacts;
 use Ectool\AmoCrmBundle\Api\Endpoint\Leads;
 use Ectool\AmoCrmBundle\Api\Exception\ApiException;
 use Ectool\AmoCrmBundle\Model\Contact;
+use Psr\Log\LoggerInterface;
 
 class Api
 {
@@ -29,7 +30,8 @@ class Api
     public function __construct(
         private string $longLivedAccessToken,
         private string $accountUrl,
-        private ?string $alias = null
+        private ?string $alias = null,
+        private LoggerInterface $logger = null,
     ) {
 //        if (!str_contains($longLivedAccessToken, '.')) {
 //        }
@@ -40,6 +42,8 @@ class Api
 //        throw new \InvalidArgumentException('Invalid long-lived access token: "'.$longLivedAccessToken.'"');
         $this->apiClient = new AmoCRMApiClient();
 
+        $this->logger->info(self::AMOCRM_ACCOUNT_URL);
+        $this->logger->info(self::AMOCRM_LONG_LIVED_ACCESS_TOKEN);
         $token = new LongLivedAccessToken(self::AMOCRM_LONG_LIVED_ACCESS_TOKEN);
         $this->apiClient
             ->setAccessToken($token)
