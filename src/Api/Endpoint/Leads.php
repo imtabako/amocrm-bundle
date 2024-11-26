@@ -22,6 +22,7 @@ trait Leads
      */
     private function sendLeadWithOneLinkedContact(
         ?ContactModel $contact = null,
+        ?int $pipelineId = null,
         ?int $price = null,
         ?string $leadName = null,
         array $tags = [],
@@ -36,6 +37,7 @@ trait Leads
 
         $this->sendLeadWithLinkedContacts(
             contactsCollection: $contactsCollection,
+            pipelineId: $pipelineId,
             price: $price,
             leadName: $leadName,
             tags: $tags

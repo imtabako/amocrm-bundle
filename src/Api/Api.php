@@ -90,6 +90,7 @@ class Api
      */
     public function sendLeadWithContacts(
         array $contacts = [],
+        ?int $pipelineId = null,
         ?int $price = null,
         ?string $leadName = null,
         array $tags = [],
@@ -107,6 +108,7 @@ class Api
 
         $this->sendLeadWithLinkedContacts(
             contactsCollection: $contactsCollection,
+            pipelineId: $pipelineId,
             price: $price,
             leadName: $leadName,
             tags: $tags,
