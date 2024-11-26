@@ -71,12 +71,14 @@ class Api
      */
     public function sendLeadWithOneContact(
         Contact $contact,
+        ?int $pipelineId = null,
         ?int $price = null,
         ?string $leadName = null,
         array $tags = [],
     ): void {
         $this->sendLeadWithOneLinkedContact(
             contact: $this->sendContact($contact),
+            pipelineId: $pipelineId,
             price: $price,
             leadName: $leadName,
             tags: $tags,
