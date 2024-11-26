@@ -31,7 +31,6 @@ class Api
         private string $longLivedAccessToken,
         private string $accountUrl,
         private ?string $alias = null,
-        private LoggerInterface $logger = null,
     ) {
 //        if (!str_contains($longLivedAccessToken, '.')) {
 //        }
