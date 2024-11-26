@@ -22,6 +22,20 @@ trait Contacts
     /**
      * @throws ApiException
      */
+    public function getContacts(): array
+    {
+        try {
+            $contactsService = $this->apiClient->contacts();
+            $contacts = $contactsService->get();
+
+            return array_map(fn ($contact) => $contact->toArray(), iterator_to_array($contacts));
+        } catch (AmoCRMApiException|AmoCRMMissedTokenException|AmoCRMoAuthApiException $e) {
+            throw new ApiException(previous: $e);
+        }
+    }
+    /**
+     * @throws ApiException
+     */
     public function sendContactRaw(
         string $phoneNumber,
         PhoneValueEnum $phoneType = PhoneValueEnum::WORK,

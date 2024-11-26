@@ -7,7 +7,6 @@ namespace Ectool\AmoCrmBundle\Api\Endpoint;
 use AmoCRM\Exceptions\AmoCRMApiException;
 use AmoCRM\Exceptions\AmoCRMMissedTokenException;
 use AmoCRM\Exceptions\AmoCRMoAuthApiException;
-use AmoCRM\Models\Leads\Pipelines\PipelineModel;
 use Ectool\AmoCrmBundle\Api\Exception\ApiException;
 
 trait Pipelines
@@ -21,13 +20,7 @@ trait Pipelines
             $pipelinesService = $this->apiClient->pipelines();
             $pipelines = $pipelinesService->get();
 
-            $result = [];
-            /** @var PipelineModel $pipeline */
-            foreach ($pipelines as $pipeline) {
-                $result[] = $pipeline->toArray();
-            }
-
-            return $result;
+            return array_map(fn ($pipeline) => $pipeline->toArray(), iterator_to_array($pipelines));
         } catch (AmoCRMApiException|AmoCRMMissedTokenException|AmoCRMoAuthApiException $e) {
             throw new ApiException(message: 'Ошибка получения воронок', previous: $e);
         }

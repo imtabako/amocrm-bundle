@@ -20,6 +20,21 @@ trait Leads
     /**
      * @throws ApiException
      */
+    public function getLeads(): array
+    {
+        try {
+            $leadsService = $this->apiClient->leads();
+            $leads = $leadsService->get();
+
+            return array_map(fn ($lead) => $lead->toArray(), iterator_to_array($leads));
+        } catch (AmoCRMApiException|AmoCRMMissedTokenException|AmoCRMoAuthApiException $e) {
+            throw new ApiException(previous: $e);
+        }
+    }
+
+    /**
+     * @throws ApiException
+     */
     private function sendLeadWithOneLinkedContact(
         ?ContactModel $contact = null,
         ?int $pipelineId = null,
