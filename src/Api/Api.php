@@ -41,8 +41,6 @@ class Api
 //        throw new \InvalidArgumentException('Invalid long-lived access token: "'.$longLivedAccessToken.'"');
         $this->apiClient = new AmoCRMApiClient();
 
-        $this->logger->info(self::AMOCRM_ACCOUNT_URL);
-        $this->logger->info(self::AMOCRM_LONG_LIVED_ACCESS_TOKEN);
         $token = new LongLivedAccessToken(self::AMOCRM_LONG_LIVED_ACCESS_TOKEN);
         $this->apiClient
             ->setAccessToken($token)
