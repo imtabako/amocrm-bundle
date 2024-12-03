@@ -7,10 +7,15 @@ namespace Ectool\AmoCrmBundle\Api;
 use AmoCRM\Client\AmoCRMApiClient;
 use AmoCRM\Client\LongLivedAccessToken;
 use AmoCRM\Collections\ContactsCollection;
+use AmoCRM\Collections\TagsCollection;
+use AmoCRM\Exceptions\AmoCRMMissedTokenException;
 use AmoCRM\Exceptions\InvalidArgumentException;
+use AmoCRM\Models\LeadModel;
+use AmoCRM\Models\TagModel;
 use Ectool\AmoCrmBundle\Api\Endpoint\Contacts;
 use Ectool\AmoCrmBundle\Api\Endpoint\Leads;
 use Ectool\AmoCrmBundle\Api\Endpoint\Pipelines;
+use Ectool\AmoCrmBundle\Api\Endpoint\Unsorted;
 use Ectool\AmoCrmBundle\Api\Exception\ApiException;
 use Ectool\AmoCrmBundle\Model\Contact;
 
@@ -19,11 +24,9 @@ class Api
     use Contacts;
     use Leads;
     use Pipelines;
+    use Unsorted;
 
-    private const AMOCRM_ACCOUNT_URL = 'yurieasycomm.amocrm.ru';
-    private const AMOCRM_LONG_LIVED_ACCESS_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImI0NmRhNjZjY2RmYTU3ZWI0YzI3OGU4NzE3Zjc0ODEwMDNhNmE1MDc5YTI0NjI2ZjZmMDQ2YTAzYjY1YjYwODM4NTYwM2UyM2FjYTk3YjZhIn0.eyJhdWQiOiI2NDQyN2M5NS0yZGY1LTRkNzEtYjc1Ny01MGQxY2YxZjczZjUiLCJqdGkiOiJiNDZkYTY2Y2NkZmE1N2ViNGMyNzhlODcxN2Y3NDgxMDAzYTZhNTA3OWEyNDYyNmY2ZjA0NmEwM2I2NWI2MDgzODU2MDNlMjNhY2E5N2I2YSIsImlhdCI6MTczMjQ5NzI5NywibmJmIjoxNzMyNDk3Mjk3LCJleHAiOjE3NTA4MDk2MDAsInN1YiI6IjExODA1ODk0IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMyMDgwNDA2LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJjcm0iLCJmaWxlcyIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiLCJwdXNoX25vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiOTczZTMwNGEtYWU3Ny00ZTViLWI3ZmItM2JmOWJlNzQ5ZmQ0IiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.j6VUfqXMWm4WJ-j-pxNfdpsREoc3hfy6d7oTmhD_plS7oZaYllOFSjzIkTl4XnaljuC-BWKC8fwtlN6-BjHxpp57irUfYz1EgyN1l8xj9OrSkcNXdu6gxR4wSIEjwWxmGfGHk_pnbQ0uDKls-mKylc933RnddwU1R7k4hZhNobFJAwZt3a_NzfXK5mJvHJJRRWcY4lSrEmt1wP_5LmgD47d4JQzVgnbK_R71eRd4_LdEVL1oKm4kjLshje2Dj4zC7kVMv3yqFTPtHWDMCDvVwAyqYXdINxelcEhCE7kZNzwHSmxTNPb6p0Zv-fw9LqzOiRrUwsVklHkVWUSyGDfA3w';
-
-    public AmoCRMApiClient $apiClient;
+    private AmoCRMApiClient $apiClient;
 
     /**
      * @throws InvalidArgumentException
@@ -32,20 +35,15 @@ class Api
         private string $longLivedAccessToken,
         private string $accountUrl,
         private ?string $alias = null,
+        private ?int $defaultPipelineId = null,
+        private ?int $defaultStatusId = null,
     ) {
-        //        if (!str_contains($longLivedAccessToken, '.')) {
-        //        }
-        //        file_put_contents('/tmp/debug_token.log', $longLivedAccessToken.PHP_EOL, FILE_APPEND);
-        //        error_log($this->longLivedAccessToken);
-        //        dump($this->longLivedAccessToken);
-
-        //        throw new \InvalidArgumentException('Invalid long-lived access token: "'.$longLivedAccessToken.'"');
         $this->apiClient = new AmoCRMApiClient();
 
-        $token = new LongLivedAccessToken(self::AMOCRM_LONG_LIVED_ACCESS_TOKEN);
+        $token = new LongLivedAccessToken($longLivedAccessToken);
         $this->apiClient
             ->setAccessToken($token)
-            ->setAccountBaseDomain(self::AMOCRM_ACCOUNT_URL)
+            ->setAccountBaseDomain($accountUrl)
         ;
     }
 
@@ -66,19 +64,45 @@ class Api
         return $this->apiClient;
     }
 
+    public function setDefaultPipelineId(?int $defaultPipelineId): static
+    {
+        $this->defaultPipelineId = $defaultPipelineId;
+
+        return $this;
+    }
+
+    public function getDefaultPipelineId(): ?int
+    {
+        return $this->defaultPipelineId;
+    }
+
+    public function setDefaultStatusId(?int $defaultStatusId): static
+    {
+        $this->defaultStatusId = $defaultStatusId;
+
+        return $this;
+    }
+
+    public function getDefaultStatusId(): ?int
+    {
+        return $this->defaultStatusId;
+    }
+
     /**
      * @throws ApiException
      */
     public function sendLeadWithOneContact(
         Contact $contact,
         ?int $pipelineId = null,
+        ?int $statusId = null,
         ?int $price = null,
         ?string $leadName = null,
         array $tags = [],
     ): void {
         $this->sendLeadWithOneLinkedContact(
             contact: $this->sendContact($contact),
-            pipelineId: $pipelineId,
+            pipelineId: $pipelineId ?? $this->defaultPipelineId,
+            statusId: $statusId ?? $this->defaultStatusId,
             price: $price,
             leadName: $leadName,
             tags: $tags,
@@ -93,6 +117,7 @@ class Api
     public function sendLeadWithContacts(
         array $contacts = [],
         ?int $pipelineId = null,
+        ?int $statusId = null,
         ?int $price = null,
         ?string $leadName = null,
         array $tags = [],
@@ -110,34 +135,75 @@ class Api
 
         $this->sendLeadWithLinkedContacts(
             contactsCollection: $contactsCollection,
-            pipelineId: $pipelineId,
+            pipelineId: $pipelineId ?? $this->defaultPipelineId,
+            statusId: $statusId ?? $this->defaultStatusId,
             price: $price,
             leadName: $leadName,
             tags: $tags,
         );
     }
 
-    public function getLongLivedAccessToken(): string
-    {
-        return $this->longLivedAccessToken;
-    }
+    /**
+     * @throws ApiException
+     */
+    public function sendUnsortedLeadWithOneContact(
+        Contact $contact,
+        ?int $pipelineId = null,
+        ?int $statusId = null,
+        ?int $price = null,
+        ?string $leadName = null,
+        array $tags = [],
+    ): void {
+        $sourceName = 'jopa_source_name';
+        $sourceUid = 'jopa_source_uid';
+        $formName = 'jopa_form_name';
 
-    public function setLongLivedAccessToken(string $longLivedAccessToken): static
-    {
-        $this->longLivedAccessToken = $longLivedAccessToken;
+        $contactsCollection = new ContactsCollection();
+        $contactModel = $this->sendContact($contact);
+        $contactsCollection->add($contactModel);
 
-        return $this;
-    }
+        try {
+            $leadsService = $this->apiClient->leads();
+        } catch (AmoCRMMissedTokenException $e) {
+            throw new ApiException(previous: $e);
+        }
 
-    public function getAccountUrl(): string
-    {
-        return $this->accountUrl;
-    }
+        $lead = new LeadModel();
+        $lead->setPrice($price);
 
-    public function setAccountUrl(string $accountUrl): static
-    {
-        $this->accountUrl = $accountUrl;
+        if (!empty($leadName)) {
+            $lead->setName($leadName);
+        }
 
-        return $this;
+        if (null !== $contactsCollection) {
+            $lead->setContacts(
+                $contactsCollection
+            );
+        }
+
+        if (null !== $pipelineId) {
+            $lead->setPipelineId($pipelineId);
+        }
+
+        //        if (null !== $statusId) {
+        //            $lead->setStatusId($statusId);
+        //        }
+
+        if (!empty($tags)) {
+            $tagsCollection = new TagsCollection();
+            foreach ($tags as $tagName) {
+                $tagsCollection->add((new TagModel())->setName($tagName));
+            }
+            $lead->setTags($tagsCollection);
+        }
+
+        $this->sendToUnsorted(
+            sourceName: $sourceName,
+            sourceUid: $sourceUid,
+            formName: $formName,
+            pipeline_id: $pipelineId,
+            lead: $lead,
+            contacts: $contactsCollection,
+        );
     }
 }
