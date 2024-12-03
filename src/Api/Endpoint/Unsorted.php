@@ -13,7 +13,6 @@ use AmoCRM\Exceptions\BadTypeException;
 use AmoCRM\Models\LeadModel;
 use AmoCRM\Models\Unsorted\FormsMetadata;
 use AmoCRM\Models\Unsorted\FormUnsortedModel;
-use DateTime;
 use Ectool\AmoCrmBundle\Api\Exception\ApiException;
 
 trait Unsorted
@@ -25,7 +24,7 @@ trait Unsorted
         string $sourceName,
         string $sourceUid,
         array $metadata,
-        int $pipeline_id,
+        int $pipelineId,
         LeadModel $lead,
         ?ContactsCollection $contacts = null,
     ): void {
@@ -45,7 +44,8 @@ trait Unsorted
             ->setFormPage($metadata['form_page'])
             ->setFormSentAt($metadata['form_sent_at'])
             ->setReferer($metadata['referer'])
-            ->setIp($metadata['ip']);
+            ->setIp($metadata['ip'])
+        ;
 
         try {
             $formUnsorted->setSourceName($sourceName)
@@ -53,9 +53,9 @@ trait Unsorted
                 ->setCreatedAt($now)
                 ->setMetadata($formMetadata)
                 ->setLead($lead)
-                ->setPipelineId($pipeline_id)
-                ->setContacts($contacts);
-
+                ->setPipelineId($pipelineId)
+                ->setContacts($contacts)
+            ;
         } catch (BadTypeException $e) {
             throw new ApiException(previous: $e);
         }
@@ -64,7 +64,7 @@ trait Unsorted
 
         try {
             $formsUnsortedCollection = $unsortedService->add($formsUnsortedCollection);
-        } catch (AmoCRMoAuthApiException|AmoCRMApiException $e) {
+        } catch (AmoCRMApiException|AmoCRMoAuthApiException $e) {
             throw new ApiException(message: 'Ошибка отправки лида в Неразобранное', previous: $e);
         }
     }

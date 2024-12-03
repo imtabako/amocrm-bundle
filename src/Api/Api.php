@@ -7,11 +7,7 @@ namespace Ectool\AmoCrmBundle\Api;
 use AmoCRM\Client\AmoCRMApiClient;
 use AmoCRM\Client\LongLivedAccessToken;
 use AmoCRM\Collections\ContactsCollection;
-use AmoCRM\Collections\TagsCollection;
-use AmoCRM\Exceptions\AmoCRMMissedTokenException;
 use AmoCRM\Exceptions\InvalidArgumentException;
-use AmoCRM\Models\LeadModel;
-use AmoCRM\Models\TagModel;
 use Ectool\AmoCrmBundle\Api\Endpoint\Contacts;
 use Ectool\AmoCrmBundle\Api\Endpoint\Leads;
 use Ectool\AmoCrmBundle\Api\Endpoint\Pipelines;
@@ -148,59 +144,22 @@ class Api
      */
     public function sendUnsortedLeadWithOneContact(
         Contact $contact,
+        string $sourceName,
+        string $sourceUid,
         array $metadata,
         ?int $pipelineId = null,
         ?int $statusId = null,
         ?int $price = null,
         ?string $leadName = null,
         array $tags = [],
-    ) {
-        $sourceName = 'jopa_source_name';
-        $sourceUid = 'jopa_source_uid';
-        $formName = 'jopa_form_name';
-
+    ): void {
         $contactsCollection = new ContactsCollection();
         $contactModel = $this->sendContact($contact);
         $contactsCollection->add($contactModel);
 
-//        try {
-//            $leadsService = $this->apiClient->leads();
-//        } catch (AmoCRMMissedTokenException $e) {
-//            throw new ApiException(previous: $e);
-//        }
-//
-//        $lead = new LeadModel();
-//        $lead->setPrice($price);
-//
-//        if (!empty($leadName)) {
-//            $lead->setName($leadName);
-//        }
-//
-//        if (null !== $contactsCollection) {
-//            $lead->setContacts(
-//                $contactsCollection
-//            );
-//        }
-//
-//        if (null !== $pipelineId) {
-//            $lead->setPipelineId($pipelineId);
-//        }
-//
-////        if (null !== $statusId) {
-////            $lead->setStatusId($statusId);
-////        }
-//
-//        if (!empty($tags)) {
-//            $tagsCollection = new TagsCollection();
-//            foreach ($tags as $tagName) {
-//                $tagsCollection->add((new TagModel())->setName($tagName));
-//            }
-//            $lead->setTags($tagsCollection);
-//        }
-
         $lead = $this->createLead(
             contactsCollection: $contactsCollection,
-            pipelineId: $pipelineId,
+            pipelineId: $pipelineId ?? $this->defaultPipelineId,
             statusId: $statusId,
             price: $price,
             leadName: $leadName,
@@ -211,7 +170,7 @@ class Api
             sourceName: $sourceName,
             sourceUid: $sourceUid,
             metadata: $metadata,
-            pipeline_id: $pipelineId,
+            pipelineId: $pipelineId ?? $this->defaultPipelineId,
             lead: $lead,
             contacts: $contactsCollection,
         );
