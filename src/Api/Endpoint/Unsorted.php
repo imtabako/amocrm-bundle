@@ -24,11 +24,10 @@ trait Unsorted
     private function sendToUnsorted(
         string $sourceName,
         string $sourceUid,
-        string $formName,
+        array $metadata,
         int $pipeline_id,
         LeadModel $lead,
         ?ContactsCollection $contacts = null,
-        array $metadata = []
     ): void {
         try {
             $unsortedService = $this->apiClient->unsorted();
@@ -41,12 +40,12 @@ trait Unsorted
         $formMetadata = new FormsMetadata();
         $now = time();
         $formMetadata
-            ->setFormId('my_best_form')
-            ->setFormName('Обратная связь')
-            ->setFormPage('https://example.com/form')
-            ->setFormSentAt($now)
-            ->setReferer('https://google.com/search')
-            ->setIp('192.168.0.1');
+            ->setFormId($metadata['form_id'])
+            ->setFormName($metadata['form_name'])
+            ->setFormPage($metadata['form_page'])
+            ->setFormSentAt($metadata['form_sent_at'])
+            ->setReferer($metadata['referer'])
+            ->setIp($metadata['ip']);
 
         try {
             $formUnsorted->setSourceName($sourceName)

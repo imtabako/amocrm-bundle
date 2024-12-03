@@ -32,6 +32,45 @@ trait Leads
         }
     }
 
+    private function createLead(
+        ?ContactsCollection $contactsCollection = null,
+        ?int $pipelineId = null,
+        ?int $statusId = null,
+        ?int $price = null,
+        ?string $leadName = null,
+        array $tags = []
+    ): LeadModel {
+        $lead = new LeadModel();
+        $lead->setPrice($price);
+
+        if (!empty($leadName)) {
+            $lead->setName($leadName);
+        }
+
+        if (null !== $contactsCollection) {
+            $lead->setContacts($contactsCollection);
+        }
+
+        if (null !== $pipelineId) {
+            $lead->setPipelineId($pipelineId);
+        }
+
+        if (null !== $statusId) {
+            $lead->setStatusId($statusId);
+        }
+
+        if (!empty($tags)) {
+            $tagsCollection = new TagsCollection();
+            foreach ($tags as $tagName) {
+                $tagsCollection->add((new TagModel())->setName($tagName));
+            }
+            $lead->setTags($tagsCollection);
+        }
+
+        return $lead;
+    }
+
+
     /**
      * @throws ApiException
      */
@@ -78,34 +117,43 @@ trait Leads
             throw new ApiException(previous: $e);
         }
 
-        $lead = new LeadModel();
-        $lead->setPrice($price);
+//        $lead = new LeadModel();
+//        $lead->setPrice($price);
+//
+//        if (!empty($leadName)) {
+//            $lead->setName($leadName);
+//        }
+//
+//        if (null !== $contactsCollection) {
+//            $lead->setContacts(
+//                $contactsCollection
+//            );
+//        }
+//
+//        if (null !== $pipelineId) {
+//            $lead->setPipelineId($pipelineId);
+//        }
+//
+//        if (null !== $statusId) {
+//            $lead->setStatusId($statusId);
+//        }
+//
+//        if (!empty($tags)) {
+//            $tagsCollection = new TagsCollection();
+//            foreach ($tags as $tagName) {
+//                $tagsCollection->add((new TagModel())->setName($tagName));
+//            }
+//            $lead->setTags($tagsCollection);
+//        }
 
-        if (!empty($leadName)) {
-            $lead->setName($leadName);
-        }
-
-        if (null !== $contactsCollection) {
-            $lead->setContacts(
-                $contactsCollection
-            );
-        }
-
-        if (null !== $pipelineId) {
-            $lead->setPipelineId($pipelineId);
-        }
-
-        if (null !== $statusId) {
-            $lead->setStatusId($statusId);
-        }
-
-        if (!empty($tags)) {
-            $tagsCollection = new TagsCollection();
-            foreach ($tags as $tagName) {
-                $tagsCollection->add((new TagModel())->setName($tagName));
-            }
-            $lead->setTags($tagsCollection);
-        }
+        $lead = $this->createLead(
+            contactsCollection: $contactsCollection,
+            pipelineId: $pipelineId,
+            statusId: $statusId,
+            price: $price,
+            leadName: $leadName,
+            tags: $tags
+        );
 
         $leadsCollection = new LeadsCollection();
         $leadsCollection->add($lead);

@@ -148,12 +148,13 @@ class Api
      */
     public function sendUnsortedLeadWithOneContact(
         Contact $contact,
+        array $metadata,
         ?int $pipelineId = null,
         ?int $statusId = null,
         ?int $price = null,
         ?string $leadName = null,
         array $tags = [],
-    ): void {
+    ) {
         $sourceName = 'jopa_source_name';
         $sourceUid = 'jopa_source_uid';
         $formName = 'jopa_form_name';
@@ -162,45 +163,54 @@ class Api
         $contactModel = $this->sendContact($contact);
         $contactsCollection->add($contactModel);
 
-        try {
-            $leadsService = $this->apiClient->leads();
-        } catch (AmoCRMMissedTokenException $e) {
-            throw new ApiException(previous: $e);
-        }
+//        try {
+//            $leadsService = $this->apiClient->leads();
+//        } catch (AmoCRMMissedTokenException $e) {
+//            throw new ApiException(previous: $e);
+//        }
+//
+//        $lead = new LeadModel();
+//        $lead->setPrice($price);
+//
+//        if (!empty($leadName)) {
+//            $lead->setName($leadName);
+//        }
+//
+//        if (null !== $contactsCollection) {
+//            $lead->setContacts(
+//                $contactsCollection
+//            );
+//        }
+//
+//        if (null !== $pipelineId) {
+//            $lead->setPipelineId($pipelineId);
+//        }
+//
+////        if (null !== $statusId) {
+////            $lead->setStatusId($statusId);
+////        }
+//
+//        if (!empty($tags)) {
+//            $tagsCollection = new TagsCollection();
+//            foreach ($tags as $tagName) {
+//                $tagsCollection->add((new TagModel())->setName($tagName));
+//            }
+//            $lead->setTags($tagsCollection);
+//        }
 
-        $lead = new LeadModel();
-        $lead->setPrice($price);
-
-        if (!empty($leadName)) {
-            $lead->setName($leadName);
-        }
-
-        if (null !== $contactsCollection) {
-            $lead->setContacts(
-                $contactsCollection
-            );
-        }
-
-        if (null !== $pipelineId) {
-            $lead->setPipelineId($pipelineId);
-        }
-
-        //        if (null !== $statusId) {
-        //            $lead->setStatusId($statusId);
-        //        }
-
-        if (!empty($tags)) {
-            $tagsCollection = new TagsCollection();
-            foreach ($tags as $tagName) {
-                $tagsCollection->add((new TagModel())->setName($tagName));
-            }
-            $lead->setTags($tagsCollection);
-        }
+        $lead = $this->createLead(
+            contactsCollection: $contactsCollection,
+            pipelineId: $pipelineId,
+            statusId: $statusId,
+            price: $price,
+            leadName: $leadName,
+            tags: $tags
+        );
 
         $this->sendToUnsorted(
             sourceName: $sourceName,
             sourceUid: $sourceUid,
-            formName: $formName,
+            metadata: $metadata,
             pipeline_id: $pipelineId,
             lead: $lead,
             contacts: $contactsCollection,
